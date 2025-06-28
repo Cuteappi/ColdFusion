@@ -37,12 +37,12 @@ export type Task =
     Instance |
     RBXScriptConnection |
     (() => void) |
-    { destroy: (...arg0: unknown[]) => void } |
-    { Destroy: (...arg0: unknown[]) => void } |
+    { destroy: () => void } |
+    { Destroy: () => void } |
     Task[];
 
 // A scope of tasks to clean up.
-export type Scope<Constructors = any> = Task[] & Constructors;
+export type Scope<Constructors> = Task[] & Constructors;
 
 // An object which uses a scope to dictate how long it lives.
 export interface ScopedObject {
@@ -61,12 +61,10 @@ export interface Version {
 export interface Contextual<T> {
     type: "Contextual";
     now: () => T;
-    is: (value: T) => ContextualIsMethods;
+    is: (value: T) => {during: <R, A extends unknown[]>(callback: (...args: A) => R, ...args: A) => R;}
 }
 
-interface ContextualIsMethods {
-    during: <R, A extends unknown[]>(callback: (...args: A) => R, ...args: A) => R;
-}
+export type ContextualConstructor = <T>(defaultValue: T) => Contextual<T>;
 
 // A graph object which can have dependencies and dependents.
 export interface GraphObject extends ScopedObject {
@@ -96,7 +94,7 @@ export type Use = <T>(target: UsedAs<T>) => T;
 export interface Value<T, S = T> extends StateObject<T> {
     kind: "State";
     timeliness: "lazy";
-    set: (self: Value<T, S>, newValue: S, force?: boolean) => S;
+    set: (newValue: S, force?: boolean) => S;
     ____phantom_setType: (arg0: never) => S; // phantom data so this contains S
 }
 
@@ -190,17 +188,46 @@ export interface SpecialKey {
 export type Child = Instance | StateObject<Child> | Map<unknown, Child>
 
 // A table that defines an instance's properties, handlers and children.
-export type PropertyTable = Map<string | SpecialKey, unknown>;
 
-export type NewConstructor = (
-    scope: Scope<unknown>,
-    className: string
-) => (propertyTable: PropertyTable) => Instance;
+export type Children = SpecialKey & SpecialKeyType<"Children">
+export type OnChangeKey<T> = SpecialKey & SpecialKeyType<"OnChange", T>
+export type OutKey<T> = SpecialKey & SpecialKeyType<"Out", T>
+export type OnEventKey<T> = SpecialKey & SpecialKeyType<"OnEvent", T>
+type SpecialKeyType<Kind extends string, Subtype = ""> = Subtype extends
+    | string
+    | number
+    | bigint
+    | boolean
+    | null
+    | undefined
+    ? `${Kind}:${Subtype}`
+    : never
 
-export type HydrateConstructor = (
+/** A table that defines an instance's properties, handlers and children. */
+export type PropertyTable<T extends Instance> = Partial<
+    {
+        [K in keyof WritableInstanceProperties<T>]: UsedAs<WritableInstanceProperties<T>[K]>
+    } & {
+        [K in InstancePropertyNames<T> as OnChangeKey<K>]: (newValue: T[K]) => void
+    } & {
+        [K in InstancePropertyNames<T> as OutKey<K>]: Value<T[K], T[K]>['set']
+    } & {
+        [K in InstanceEventNames<T> as OnEventKey<K>]: T[K] extends RBXScriptSignal<infer C>
+            ? (...args: Parameters<C>) => void
+            : never
+    } & Record<Children, Child> &
+        Map<SpecialKey, unknown>
+>
+
+export type NewConstructor = <T extends keyof CreatableInstances>(
     scope: Scope<unknown>,
-    target: Instance
-) => (propertyTable: PropertyTable) => Instance;
+    className: T
+) => (propertyTable: PropertyTable<CreatableInstances[T]>) => CreatableInstances[T];
+
+export type HydrateConstructor = <T extends Instance>(
+    scope: Scope<unknown>,
+    target: T
+) => (propertyTable: PropertyTable<T>) => T;
 
 // Is there a sane way to write out this type?
 // ... I sure hope so.
@@ -222,14 +249,12 @@ export type ScopedConstructor = <Methods extends object[]>(
 	[Key in keyof Methods[number]]: Methods[number][Key]
 }>
 
-export type ContextualConstructor = <T>(defaultValue: T) => Contextual<T>;
-
 export type Safe = <Success, Fail>(callbacks: {
     try: () => Success;
     fallback: (err: unknown) => Fail;
 }) => Success | Fail;
 
-export interface Fusion {
+export interface ColdFusion {
     version: Version;
     Contextual: ContextualConstructor;
     Safe: Safe;
@@ -283,4 +308,24 @@ export interface ExternalDebugger {
 
     trackScope: (scope: Scope<unknown>) => void;
     untrackScope: (scope: Scope<unknown>) => void;
+}
+
+
+export type Constructors = {
+	Computed: <T>(callback: (use: Use, scope: Scope<object>) => T) => Computed<T>
+	Value: <T>(initialValue: T) => LuaTuple<[Value<T, any>, Value<T, any>["set"]]>
+	ForKeys: <KI, KO, V>(
+		inputTable: UsedAs<Map<KI, V>>,
+		processor: (use: Use, scope: Scope<object>, key: KI) => KO,
+	) => For<KO, V>
+	ForPairs: <KI, KO, VI, VO>(
+		inputTable: UsedAs<Map<KI, VI>>,
+		processor: (use: Use, scope: Scope<object>, key: KI, value: VI) => LuaTuple<[KO, VO]>,
+	) => For<KO, VO>
+	ForValues: <K, VI, VO>(
+		inputTable: UsedAs<Map<K, VI>>,
+		processor: (use: Use, scope: Scope<object>, value: VI) => VO,
+	) => For<K, VO>
+	Tween: <T>(goalState: UsedAs<T>, tweenInfo?: UsedAs<TweenInfo>) => Tween<T>
+	Spring: <T>(goalState: UsedAs<T>, speed?: UsedAs<number>, damping?: UsedAs<number>) => Spring<T>
 }

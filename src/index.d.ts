@@ -1,66 +1,69 @@
 import type * as Types from "./Types";
 
-declare namespace Fusion {
+
+export = ColdFusion;
+export as namespace ColdFusion;
+
+declare namespace ColdFusion {
 	// General
 	const version: Types.Version;
-	const Contextual: Types.ContextualConstructor;
-	const Safe: Types.Safe;
+	export const Contextual: Types.ContextualConstructor;
+	export const Safe: Types.Safe;
 
 	// Memory
 	/** @deprecated use `doCleanup()` instead */
-	const cleanup: (task: Types.Task) => void;
-	const deriveScope: Types.DeriveScopeConstructor;
-	const doCleanup: (task: Types.Task) => void;
-	const innerScope: Types.DeriveScopeConstructor;
-	const queueScope: <T extends Types.Task[]>(scope: Types.Scope<unknown>, ...tasks: T) => LuaTuple<T>;
-	const scoped: Types.ScopedConstructor;
+	export const cleanup: (task: Types.Task) => void;
+	export const deriveScope: Types.DeriveScopeConstructor;
+	export const doCleanup: (task: Types.Task) => void;
+	export const innerScope: Types.DeriveScopeConstructor;
+	export const queueScope: <T extends Types.Task[]>(scope: Types.Scope<unknown>, ...tasks: T) => LuaTuple<T>;
+	export const scoped: Types.ScopedConstructor;
 
 	// State
-	const expect: Types.Use;
-	const Computed: Types.ComputedConstructor;
-	const ForKeys: Types.ForKeysConstructor;
-	const ForPairs: Types.ForPairsConstructor;
-	const ForValues: Types.ForValuesConstructor;
-	const Observer: Types.ObserverConstructor;
-	const peek: Types.Use;
-	const Value: Types.ValueConstructor;
+	export const expect: Types.Use;
+	export const Computed: Types.ComputedConstructor;
+	export const ForKeys: Types.ForKeysConstructor;
+	export const ForPairs: Types.ForPairsConstructor;
+	export const ForValues: Types.ForValuesConstructor;
+	export const Observer: Types.ObserverConstructor;
+	export const peek: Types.Use;
+	export const Value: Types.ValueConstructor;
 
 	// Roblox API
-	const Attribute: (attributeName: string) => Types.SpecialKey;
-	const AttributeChange: (attributeName: string) => Types.SpecialKey;
-	const AttributeOut: (attributeName: string) => Types.SpecialKey;
-	const Child: (children: Types.Child[]) => Types.Child;
-	const Children: Types.SpecialKey;
-	const Hydrate: Types.HydrateConstructor;
-	const New: Types.NewConstructor;
-	const OnChange: (propertyName: string) => Types.SpecialKey;
-	const OnEvent: (eventName: string) => Types.SpecialKey;
-	const Out: (propertyName: string) => Types.SpecialKey;
+	export const Attribute: (attributeName: string) => Types.SpecialKey;
+	export const AttributeChange: (attributeName: string) => Types.SpecialKey;
+	export const AttributeOut: (attributeName: string) => Types.SpecialKey;
+	export const Child: (children: Types.Child[]) => Types.Child;
+	export const Children: Types.SpecialKey;
+	export const Hydrate: Types.HydrateConstructor;
+	export const New: Types.NewConstructor;
+	export const OnChange: (propertyName: string) => Types.SpecialKey;
+	export const OnEvent: (eventName: string) => Types.SpecialKey;
+	export const Out: (propertyName: string) => Types.SpecialKey;
 
 	// Animation
-	const Tween: Types.TweenConstructor;
-	const Spring: Types.SpringConstructor;
+	export const Tween: Types.TweenConstructor;
+	export const Spring: Types.SpringConstructor;
 
 	// Types
-	type Animatable = Types.Animatable;
-	type UsedAs<T> = Types.UsedAs<T>;
-	type Child = Types.Child;
-	type Computed<T> = Types.Computed<T>;
-	type Contextual<T> = Types.Contextual<T>;
-	type For<KO, VO> = Types.For<KO, VO>;
-	type Observer = Types.Observer;
-	type PropertyTable = Types.PropertyTable;
-	type Scope<T = any> = Types.Scope<T>;
-	type ScopedObject = Types.ScopedObject;
-	type SpecialKey = Types.SpecialKey;
-	type Spring<T> = Types.Spring<T>;
-	type StateObject<T> = Types.StateObject<T>;
-	type Task = Types.Task;
-	type Tween<T> = Types.Tween<T>;
-	type Use = Types.Use;
-	type Value<T, S = T> = Types.Value<T, S>;
-	type Version = Types.Version;
+	export type Animatable = Types.Animatable;
+	export type UsedAs<T> = Types.UsedAs<T>;
+	export type Child = Types.Child;
+	export type Computed<T> = Types.Computed<T>;
+	export type Constructors = Types.Constructors;
+	export type Contextual<T> = Types.Contextual<T>;
+	export type For<KO, VO> = Types.For<KO, VO>;
+	export type Observer = Types.Observer;
+	export type PropertyTable = Types.PropertyTable<Instance>;
+	export type Scope<Constructors> = Types.Scope<Constructors>;
+	export type ScopedObject = Types.ScopedObject;
+	export type SpecialKey = Types.SpecialKey;
+	export type Spring<T> = Types.Spring<T>;
+	export type StateObject<T> = Types.StateObject<T>;
+	export type Task = Types.Task;
+	export type Tween<T> = Types.Tween<T>;
+	export type Use = Types.Use;
+	export type Value<T, S = T> = Types.Value<T, S>;
+	export type Version = Types.Version;
 }
 
-export = Fusion;
-export as namespace Fusion;
